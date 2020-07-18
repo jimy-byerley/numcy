@@ -4,7 +4,7 @@ NUMCY   -  A Better Numpy
 
 ### Project not started yet
 
-[Python](https://www.python.org/) is my favorite language, and using it everyday I came to consider that one of the thing in python I don't like to work with was [numpy](https://numpy.org/). How is that possible ?! on can say, numpy is so useful ! it is one of the best tool in order to get efficiency in computation ! 
+[Python](https://www.python.org/) is my favorite language, and using it everyday I came to consider that one of the thing in python I don't like to work with (as a programmer) was [numpy](https://numpy.org/). How is that possible ?! on can say, numpy is so useful ! it is one of the best tool in order to get efficiency in computation ! 
 
 And indeed it is ...
 
@@ -44,7 +44,7 @@ And indeed it is ...
 
 ### goals
 
-This project is a proposal to rebuild a new numpy-like library from scratch. The idea is to keep all the current advantages of numpy, but to fix the previous stated issues. 
+This project is a proposal to rebuild a new numpy-like library from scratch. The idea is to keep all the current advantages of numpy, but with a new design to fix the previous stated issues. 
 
 I think that [Cython](https://cython.org/) would be great to write this module (hence the proposal name), as it's very close to python and allows to write very optimized code without making it hard to include python interactions.
 The [proposal](proposal.md) explains the main lines of the new proposed API.
