@@ -294,7 +294,7 @@ array-like methods, reproducing approximately the same behaviors as `buffer` met
 
 ## class readonly
 
-the a proxy on the `array` class, but with only the read abilities, to inplace or setitem operations. It only integrates a ref on a normal array.
+this is a proxy on the `array` class, but with only the read abilities, no inplace or setitem operations. It only integrates a ref on a normal array.
 
 
 
