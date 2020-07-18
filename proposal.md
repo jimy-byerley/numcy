@@ -179,7 +179,7 @@ Slices are working on the same way, but a returns an `array` instead of a `buffe
 
 ## class buffer
 
-Sort of ndarray, but 1-dimension only to allow append capabilities.
+Sort of ndarray, but 1-dimension only to allow append capabilities with dynamic memory allocation.
 
 #### Readonly members:
 
@@ -192,9 +192,9 @@ Sort of ndarray, but 1-dimension only to allow append capabilities.
 
 	size of the used space
 
-+ `allocated` - int
++ `allocated` - bytearray
 
-	size of the allocated memory
+	the allocated memory
 
 The constructors signatures of array applies here
 
@@ -237,7 +237,7 @@ array-like methods
 
 #### Notes
 
-As you can see, buffers are sharing their pointer to data through the buffer protocol and to any array class used a a view. Which can lead to memory corruption because the `buffer`'s pointer can change with its size. I doesn't happend here, because the storage used for a `buffer` is a python object `bytearray` and is ref-counted (its shared through the property `owner` to view arrays). So when the `buffer` reallocates to grow, the old memory lasts for as long as someone is using it.
+As you can see, buffers are sharing their pointer to data through the buffer protocol and to any array class used a a view. Which can lead to memory corruption because the `buffer`'s pointer can change with its size. I won't happend in fact, because the storage used for a `buffer` is a python `bytearray` and is ref-counted (its shared through the property `owner` to view arrays). So when the `buffer` reallocates to grow, the old bytearray lasts for as long as something is using it.
 
 
 
