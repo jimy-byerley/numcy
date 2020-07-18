@@ -17,7 +17,7 @@ Can be any of the following:
 	'3f4 5x 12u1'
 	```
 
-- **a builtin type**, (be careful: the array operations will copy the content without consideration for any object constructor/destructor, so be sure you use only basic static data objects here, with a fixed size)
+- **a builtin type**, (be careful: the array operations will copy the content without consideration for any object constructor/destructor, so be sure you use only basic static data objects with a fixed size here)
 
 	```python
 	<builtin type 'vec3'>
@@ -55,9 +55,9 @@ table of possible types
 | precision | u  | i  | f  |  C-equivalent         
 |-----------|----|----|----|-----------------------
 | 1         | u1 | i1 | f1 | unsigned char, char
-| 2         | u2 | i2 | f2 | short int,
-| 4         | u4 | i4 | f4 | int, float
-| 8         | u8 | i8 | f8 | long, double
+| 2         | u2 | i2 | f2 | unsigned short int, short int 
+| 4         | u4 | i4 | f4 | unsigned short int, float
+| 8         | u8 | i8 | f8 | unsigned long, long, double
 
 It can happens that you want to keep unused spaces in a dtype, then replace the unused bytes by `x`:  
 	`'3f4 5x 2u1'` keeps 5 bytes between a group of floats and a group of unsigned.
@@ -141,6 +141,15 @@ Slices are working on the same way, but a returns an `array` instead of a `buffe
 
 	return an array of the same shape, but source elements will be converted into the new dtype. At contrary to the array constructor that only retinterpret the memory.
 
+- `zeros() -> self`
+
+	fill with zeros. Works for custom dtypes if they defines `packlayout`.
+	if shape is a tuple, the result is an `array` else a `buffer`.
+	
+- `full(element) -> self`
+
+	fill with byte copies of the given element.
+
 - `map(func) -> array`
 
 	apply a function to each element
@@ -164,7 +173,7 @@ Slices are working on the same way, but a returns an `array` instead of a `buffe
 - `__len__`
 
 	gives the total number of elements
-
+	
 
 
 
@@ -196,6 +205,7 @@ Slices are working on the same way, but a returns an `array` instead of a `buffe
 
 #### Methods:
 
+list-like methods
 - `append(x)`
 - `insert(i, x)`
 - `pop(i)`
@@ -207,19 +217,27 @@ Slices are working on the same way, but a returns an `array` instead of a `buffe
 
 	reduce the allocated area to only the used space
 
+array-like methods
 - `swap(other)`
 - `cast(dtype) -> buffer`
+- `zeros()`
+- `full(element)`
 - `map(func) -> buffer`
 - `imap(func)`
 - `find(x, start=0, end=-1) -> int`
 
 	find the first occurence of x (byte match)
 
+- `__add__`, `__mul__`, etc
 - `__matmul__`
 
 	to provide the `A @ B` syntax for matrix multiplication, considering that the current buffer is a column array, elements should support `__add__` and `__mul__`
 
 - `__len__`
+
+#### Notes
+
+As you can see, buffers are sharing their pointer to data through the buffer protocol and to any array class used a a view. Which can lead to memory corruption because the `buffer`'s pointer can change with its size. I doesn't happend here, because the storage used for a `buffer` is a python object `bytearray` and is ref-counted (its shared through the property `owner` to view arrays). So when the `buffer` reallocates to grow, the old memory lasts for as long as someone is using it.
 
 
 
@@ -254,27 +272,29 @@ Slicing is possible even with sub indices, it provides a zipped on slices of the
 
 #### Methods:
 
+array-like methods, reproducing approximately the same behaviors as `buffer` methods
 - `cast(dtype) -> buffer`
 - `swap(other)`
+- `zeros()`
+- `full(element)`
 - `map(func) -> buffer`
 - `imap(func)`
 - `find(x) -> int`
 - `find(x, start=0, end=0) -> int`
 
-	find the first occurence of x (byte match)
-
+- `__add__`, `__mul__`, etc
 - `__matmul__`
 
 	to provide the `A @ B` syntax for matrix multiplication, considering that the current buffer is a column array, elements should support `__add__` and `__mul__`
 
 - `__len__`
 
-	the common len to the sub arrays
+	the common length to the sub arrays
 
 
 ## class readonly
 
-the exact clone of the local `array` class, but with only the read abilities, to inplace or setitem operations.
+the a proxy on the `array` class, but with only the read abilities, to inplace or setitem operations. It only integrates a ref on a normal array.
 
 
 
@@ -319,28 +339,15 @@ TODO
 	
 	NOTE: the dtype must allow this
 
-- `zeros(len/shape, dtype) -> buffer/array`
-
-	array initialized with zeros. Works for custom dtypes if they defines `packlayout`.
-	if shape is a tuple, the result is an `array` else a `buffer`.
-	
-- `full(len/shape, element) -> buffer/array`
-
-	array initialized with byte copies of the given element.
-
-
-#### NOTE
-	
-It may be better to replace the functions `nc.zeros` and `nc.full` by `array.zeros` and `array.fill`. Hence zeros initialization will looks like: `nc.empty(shape, dtype).zeros()`
-	
 	
 
-## module math
+## sub-module math
 
 math functions working on arrays are placed here, and are just shorthands.
 
 These math functions are defined as follow:
 ```python
+from math import tan
 def tan(x: array):
 	return x.apply(tan)
 ```
