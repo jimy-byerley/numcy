@@ -347,8 +347,8 @@ math functions working on arrays are placed here, and are just shorthands.
 
 These math functions are defined as follow:
 ```python
-from math import tan
+import math  # the python math module
 def tan(x: array):
-	return x.apply(tan)
+	return x.apply(math.tan)
 ```
 In this example, `x.apply` is getting the right optimized function to do the task. Its parameter is used as key to find an optimized function in the `vectorized` dictionnaries, if nothing is found, then the basic element by element operation is executed (with no efficiency gain).
