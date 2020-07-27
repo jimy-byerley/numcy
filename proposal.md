@@ -37,6 +37,7 @@ Can be any of the following:
 	
 No registeration of the dtype is necessary to use it in one of the arrays defined here. in order to improve the efficiency of operations, you may declare some vectorized implementations (see below).
 
+
 #### dtype layout strings
 
 The syntax is a simple sequence of this kind: `'[N]TP[A] [N]TP[A] ...'`
@@ -44,7 +45,7 @@ The syntax is a simple sequence of this kind: `'[N]TP[A] [N]TP[A] ...'`
 - N is the number of repeated elements of this primitive type
 - T is the primitive type, that gives a meaning to the data (`u`, `i`, `f`)
 - P is the precision (number of bytes used)
-- A is alignment specification (`'<'` or `'>'`)
+- A is endianness specification (`'<'` or `'>'`)
 
 example 
 `'f8'` means 64bits precison floating point number
@@ -75,6 +76,13 @@ nc.vectorized = {('__iadd__', dtype, dtype): func}
 
 for custom dtypes, it would be better to define a member `vectorize` using the same format (the module global dictionnary defaults to the member dictionnary).
 
+## overall
+
+This API exposes a class `array` that is pretty much like the numpy array (just a bit simpler). `array` will serve as n-dimensinal storage of elements, but other array types are also defined to cover more use cases.
+
+The idea is that the array type depends on your usage of the data set, but the dtypes system is always the same for all arrays. So you can cast a `nc.array` into a `nc.buffer` or `nc.zipped` and so on.
+
+For instance, `array` is a simple buffer with element-wise operations, if you want to use the same data as a matrix, you should use `matrix`, if you want an extendable array, use a `buffer` ...
 
 
 ## class array
@@ -164,11 +172,12 @@ Slices are working on the same way, but a returns an `array` instead of a `buffe
 
 - `__add__`, `__mul__`, etc
 
-	for syntaxic operations
+	for syntaxic operations, all are element-wise
 
 - `__matmul__`
 
-	to provide the `A @ B` syntax for matrix multiplication, the current shape is used and elements should support `__add__` and `__mul__`
+	Also wraps to element-wise matrix multiplication, the array elements must be matrices or support this operator.
+	In order to multiply this array as a matrix and not element-wise, create a `matrix` from this array.
 
 - `__len__`
 
@@ -206,18 +215,20 @@ Slices are working on the same way, but a returns an `array` instead of a `buffe
 #### Methods:
 
 list-like methods
+
 - `append(x)`
 - `insert(i, x)`
 - `pop(i)`
 - `reserve(n)`
 
-	ensure that n additional elements can be stored in without reallocation, reallocate if necessary.
+	ensure that n additional elements can be stored in without reallocation, reallocate if necessary to achieve that.
 
 - `shrink()`
 
 	reduce the allocated area to only the used space
 
 array-like methods
+
 - `swap(other)`
 - `cast(dtype) -> buffer`
 - `zeros()`
@@ -228,10 +239,7 @@ array-like methods
 
 	find the first occurence of x (byte match)
 
-- `__add__`, `__mul__`, etc
-- `__matmul__`
-
-	to provide the `A @ B` syntax for matrix multiplication, considering that the current buffer is a column array, elements should support `__add__` and `__mul__`
+- `__add__`, `__mul__`, `__matmul__`, etc element-wise
 
 - `__len__`
 
@@ -273,6 +281,7 @@ Slicing is possible even with sub indices, it provides a zipped on slices of the
 #### Methods:
 
 array-like methods, reproducing approximately the same behaviors as `buffer` methods
+
 - `cast(dtype) -> buffer`
 - `swap(other)`
 - `zeros()`
@@ -282,14 +291,37 @@ array-like methods, reproducing approximately the same behaviors as `buffer` met
 - `find(x) -> int`
 - `find(x, start=0, end=0) -> int`
 
-- `__add__`, `__mul__`, etc
-- `__matmul__`
-
-	to provide the `A @ B` syntax for matrix multiplication, considering that the current buffer is a column array, elements should support `__add__` and `__mul__`
+- `__add__`, `__mul__`, `__matmul__`, etc element-wise
 
 - `__len__`
 
 	the common length to the sub arrays
+
+## class matrix
+Same definition as `array`, only the meaning of this class and some of its operations changes.
+Note that build a `matrix` from an `array` or a `buffer` doesn't copy the internal data is no cast is done. There is very few overkill.
+
+#### Constructors
+
+- `matrix(memoryview, dtype=None)`
+- `matrix(iterable, dtype=None)`
+- `matrix(other, dtype=None)`
+- `matrix(int/float, dtype=None)`
+
+	create a diagonal matrix of this element
+
+Most mathematical matrix operations defined as methods:
+
+- `__matmul__`
+	
+	to provide the `A @ B` syntax for matrix multiplication, the current shape is used and elements should support `__add__` and `__mul__`
+	
+- `transpose()`
+- `det()`	
+- `inverse()`
+- `ker()`
+- `im()`
+- `rank()`
 
 
 ## class readonly
@@ -346,6 +378,7 @@ TODO
 math functions working on arrays are placed here, and are just shorthands.
 
 These math functions are defined as follow:
+
 ```python
 import math  # the python math module
 def tan(x: array):
