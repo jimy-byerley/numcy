@@ -11,7 +11,7 @@ The class names and some method names may need to be reworked to get more cohere
 
 Can be any of the following:
 
-- **built from a string**, defining the memory layout of each element
+- **built from a string**, defining the memory layout of each element (see specification below)
 	
 	```python
 	'3f4 5x 12u1'
@@ -31,7 +31,7 @@ Can be any of the following:
 	class quaternion:
 		packlayout = '4f8'
 		vectorized = { ... }
-		def tobytes(self):  ...
+		def __bytes__(self):  ...
 		def frombytes(bytes): ...
 	```
 	
@@ -49,9 +49,9 @@ The syntax is a simple sequence of this kind: `'[N]TP[A] [N]TP[A] ...'`
 
 example 
 `'f8'` means 64bits precison floating point number
-`'13i4'` means 13 successive 32 bytes integers
+`'13i4'` means 13 successive 32 bits integers
 
-table of possible types
+table of possible types:
 
 | precision | u  | i  | f  |  C-equivalent         
 |-----------|----|----|----|-----------------------
@@ -165,10 +165,15 @@ Slices are working on the same way, but a returns an `array` instead of a `buffe
 - `imap(func)`
 
 	apply a function to each element, storing the content inplace
+	
+- `mat(func, array) -> array`
+
+	apply a function to all couples found in a matrix multiplication, and return an array of results
 
 - `find(x)`
 
 	return the index/location of the first occurence of x (byte match)
+	If x is not convertible to bytes, it's converted to the array dtype before
 
 - `__add__`, `__mul__`, etc
 
@@ -235,6 +240,7 @@ array-like methods
 - `full(element)`
 - `map(func) -> buffer`
 - `imap(func)`
+- `mat(func, array) - array`
 - `find(x, start=0, end=-1) -> int`
 
 	find the first occurence of x (byte match)
@@ -298,8 +304,8 @@ array-like methods, reproducing approximately the same behaviors as `buffer` met
 	the common length to the sub arrays
 
 ## class matrix
-Same definition as `array`, only the meaning of this class and some of its operations changes.
-Note that build a `matrix` from an `array` or a `buffer` doesn't copy the internal data is no cast is done. There is very few overkill.
+Same definition as `array`, only the meaning of this class and some of its operations changes. Also this class is 2 dimension only.
+Note that build a `matrix` from an `array` or a `buffer` doesn't copy the internal data is no cast is done. There is only a very small overkill in cast.
 
 #### Constructors
 
@@ -322,12 +328,6 @@ Most mathematical matrix operations defined as methods:
 - `ker()`
 - `im()`
 - `rank()`
-
-
-## class readonly
-
-this is a proxy on the `array` class, but with only the read abilities, no inplace or setitem operations. It only integrates a ref on a normal array.
-
 
 
 ## class sparse
@@ -369,9 +369,12 @@ TODO
 	
 	array with uninitialized memory 
 	
-	NOTE: the dtype must allow this
+	**NOTE:** the dtype must allow this
 
-	
+- `readonly(array) -> array`
+
+	return an array pointing to the same memory, but with write abilities disabled
+
 
 ## sub-module math
 
